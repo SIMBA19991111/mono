@@ -1,0 +1,55 @@
+openapi: 3.0.3
+info:
+  title: Agent Chat Stream API
+  version: 0.1.0
+paths:
+  /api/chat/stream:
+    post:
+      summary: Send a user message and receive a streamed agent reply
+      operationId: streamChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  description: Traditional Chinese (or other UTF-8) user text; must be non-empty after trim
+                  maxLength: 4000
+            example:
+              message: 你好，請用繁體中文回覆。
+      responses:
+        "200":
+          description: SSE stream of agent reply chunks
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  SSE events:
+                  - event: chunk, data: {"text":"..."}
+                  - event: done, data: {"ok":true}
+                  - event: error, data: {"message":"..."}
+        "400":
+          description: Invalid request (empty/whitespace or over-length message)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [detail]
+                properties:
+                  detail:
+                    type: string
+        "500":
+          description: Agent/stream failure before or during stream setup
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [detail]
+                properties:
+                  detail:
+                    type: string
